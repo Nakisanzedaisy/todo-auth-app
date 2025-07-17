@@ -2,14 +2,35 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.role.createMany({
-    data: [
-      { name: 'admin' },
-      { name: 'super_admin' }
-    ]
+  const [adminRole, superAdminRole] = await Promise.all([
+    prisma.role.create({ data: { name: 'admin' } }),
+    prisma.role.create({ data: { name: 'super_admin' } })
+  ]);
+
+  const [createTodo, deleteTodo] = await Promise.all([
+    prisma.permission.create({ data: { name: 'create_todo' } }),
+    prisma.permission.create({ data: { name: 'delete_todo' } })
+  ]);
+
+  await prisma.role.update({
+    where: { id: adminRole.id },
+    data: {
+      permissions: {
+        connect: [{ id: createTodo.id }]
+      }
+    }
   });
 
-  console.log("Roles seeded!");
+  await prisma.role.update({
+    where: { id: superAdminRole.id },
+    data: {
+      permissions: {
+        connect: [{ id: createTodo.id }, { id: deleteTodo.id }]
+      }
+    }
+  });
+
+  console.log('Seeding completed.');
 }
 
 main()
