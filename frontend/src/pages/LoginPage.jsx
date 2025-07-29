@@ -1,46 +1,50 @@
+// src/pages/LoginPage.js
 import React, { useState } from "react";
-import axios from "axios";
+import API from "../api";
+import { useNavigate } from "react-router-dom";
 
-export default function Login({ onLogin }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function LoginPage() {
+  const [form, setForm] = useState({ email: "", password: "" });
+  const navigate = useNavigate();
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const loginUser = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
-        email,
-        password,
-      });
+      const res = await API.post("/auth/login", form);
       localStorage.setItem("token", res.data.token);
-      onLogin();
-    } catch (err) {
-      alert("Login failed");
+      alert("Login successful!");
+      navigate("/todos");
+    } catch (error) {
+      alert(error.response?.data?.error || "Login failed");
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded shadow">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-2 mb-4 border rounded"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-2 mb-4 border rounded"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button
-          onClick={loginUser}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          Login
-        </button>
-      </div>
+    <div className="container mx-auto max-w-md mt-20 p-6 border rounded shadow">
+      <h2 className="text-2xl mb-6 font-semibold">Login</h2>
+      <input
+        name="email"
+        type="email"
+        placeholder="Email"
+        value={form.email}
+        onChange={handleChange}
+        className="w-full p-2 mb-4 border rounded"
+      />
+      <input
+        name="password"
+        type="password"
+        placeholder="Password"
+        value={form.password}
+        onChange={handleChange}
+        className="w-full p-2 mb-6 border rounded"
+      />
+      <button
+        onClick={loginUser}
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+      >
+        Login
+      </button>
     </div>
   );
 }

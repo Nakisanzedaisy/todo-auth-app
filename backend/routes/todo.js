@@ -6,30 +6,31 @@ const router = express.Router();
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-function authMiddleware(req, res, next) {
+function authenticate(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
 
+  const token = auth.split(' ')[1];
   try {
-    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
-    req.user = decoded;
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.userId = payload.userId;
     next();
-  } catch (e) {
+  } catch {
     res.status(401).json({ error: 'Invalid token' });
   }
 }
 
-router.get('/', authMiddleware, async (req, res) => {
-  const todos = await prisma.todo.findMany({ where: { userId: req.user.userId } });
+router.get('/', authenticate, async (req, res) => {
+  const todos = await prisma.todo.findMany({
+    where: { userId: req.userId },
+  });
   res.json(todos);
 });
 
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
+  const { title } = req.body;
   const todo = await prisma.todo.create({
-    data: {
-      title: req.body.title,
-      userId: req.user.userId,
-    },
+    data: { title, userId: req.userId },
   });
   res.json(todo);
 });

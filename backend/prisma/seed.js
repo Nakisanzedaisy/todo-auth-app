@@ -2,16 +2,33 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  const [adminRole, superAdminRole] = await Promise.all([
-    prisma.role.create({ data: { name: 'admin' } }),
-    prisma.role.create({ data: { name: 'super_admin' } })
-  ]);
+  // Check if roles exist
+  const adminRole = await prisma.role.upsert({
+    where: { name: 'admin' },
+    update: {},
+    create: { name: 'admin' }
+  });
 
-  const [createTodo, deleteTodo] = await Promise.all([
-    prisma.permission.create({ data: { name: 'create_todo' } }),
-    prisma.permission.create({ data: { name: 'delete_todo' } })
-  ]);
+  const superAdminRole = await prisma.role.upsert({
+    where: { name: 'super_admin' },
+    update: {},
+    create: { name: 'super_admin' }
+  });
 
+  // Check if permissions exist
+  const createTodo = await prisma.permission.upsert({
+    where: { name: 'create_todo' },
+    update: {},
+    create: { name: 'create_todo' }
+  });
+
+  const deleteTodo = await prisma.permission.upsert({
+    where: { name: 'delete_todo' },
+    update: {},
+    create: { name: 'delete_todo' }
+  });
+
+  // Update roles with permissions
   await prisma.role.update({
     where: { id: adminRole.id },
     data: {
@@ -25,7 +42,10 @@ async function main() {
     where: { id: superAdminRole.id },
     data: {
       permissions: {
-        connect: [{ id: createTodo.id }, { id: deleteTodo.id }]
+        connect: [
+          { id: createTodo.id },
+          { id: deleteTodo.id }
+        ]
       }
     }
   });
@@ -34,5 +54,8 @@ async function main() {
 }
 
 main()
-  .catch(e => console.error(e))
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());

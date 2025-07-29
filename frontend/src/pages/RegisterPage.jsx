@@ -1,59 +1,61 @@
+// src/pages/RegisterPage.js
 import React, { useState } from "react";
-import axios from "axios";
+import API from "../api";
 
-export default function Register() {
+export default function RegisterPage() {
   const [form, setForm] = useState({
-    name: "",
     email: "",
     password: "",
-    role: "admin", // or super_admin
+    roleName: "admin", // matches backend roles
   });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const registerUser = async () => {
     try {
-      await axios.post("http://localhost:5000/api/auth/register", form);
-      alert("Registration successful!");
-    } catch (err) {
-      alert("Registration failed");
+      await API.post("/auth/register", form);
+      alert("Registered successfully! Please login.");
+    } catch (error) {
+      alert(error.response?.data?.error || "Registration failed");
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded shadow">
-        <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
-        <input
-          type="text"
-          placeholder="Name"
-          className="w-full p-2 mb-4 border rounded"
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-2 mb-4 border rounded"
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-2 mb-4 border rounded"
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-        />
-        <select
-          className="w-full p-2 mb-4 border rounded"
-          onChange={(e) => setForm({ ...form, role: e.target.value })}
-        >
-          <option value="admin">Admin</option>
-          <option value="super_admin">Super Admin</option>
-        </select>
-        <button
-          onClick={registerUser}
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
-        >
-          Register
-        </button>
-      </div>
+    <div className="container mx-auto max-w-md mt-20 p-6 border rounded shadow">
+      <h2 className="text-2xl mb-6 font-semibold">Register</h2>
+      <input
+        name="email"
+        type="email"
+        placeholder="Email"
+        value={form.email}
+        onChange={handleChange}
+        className="w-full p-2 mb-4 border rounded"
+      />
+      <input
+        name="password"
+        type="password"
+        placeholder="Password"
+        value={form.password}
+        onChange={handleChange}
+        className="w-full p-2 mb-4 border rounded"
+      />
+      <select
+        name="roleName"
+        value={form.roleName}
+        onChange={handleChange}
+        className="w-full p-2 mb-6 border rounded"
+      >
+        <option value="admin">Admin</option>
+        <option value="super_admin">Super Admin</option>
+      </select>
+      <button
+        onClick={registerUser}
+        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+      >
+        Register
+      </button>
     </div>
   );
 }
