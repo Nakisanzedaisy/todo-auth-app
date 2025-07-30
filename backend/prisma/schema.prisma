@@ -8,42 +8,52 @@ datasource db {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  name     String
-  email    String   @unique
-  password String
-  role     Role     @relation(fields: [roleId], references: [id])
-  roleId   Int
-  todos    Todo[]
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  todos     Todo[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Role {
-  id          Int                @id @default(autoincrement())
-  name        String             @unique
+  id          String            @id @default(cuid())
+  name        String            @unique
   users       User[]
-  permissions RolePermission[]   // Relation to the join table
+  permissions RolePermission[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model Permission {
-  id          Int                @id @default(autoincrement())
-  name        String             @unique
-  roles       RolePermission[]   // Relation to the join table
+  id          String            @id @default(cuid())
+  name        String            @unique
+  roles       RolePermission[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model RolePermission {
-  roleId       Int
-  permissionId Int
-
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
   role         Role       @relation(fields: [roleId], references: [id])
   permission   Permission @relation(fields: [permissionId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  @@id([roleId, permissionId]) // Composite primary key
+  @@unique([roleId, permissionId])
 }
 
 model Todo {
-  id          Int    @id @default(autoincrement())
+  id          String   @id @default(cuid())
   title       String
-  description String
-  user        User   @relation(fields: [userId], references: [id])
-  userId      Int
+  description String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
